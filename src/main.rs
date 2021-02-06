@@ -26,9 +26,9 @@ fn put_color(canvas: &mut WindowCanvas, p: Point, c: Color) {
     canvas.draw_point(p).unwrap();
 }
 
-fn lerp(x1: i32, y1: f64, x2: i32, y2: f64) -> Vec<(i32, f64)> {
+fn lerp(x1: i32, y1: f64, x2: i32, y2: f64) -> Vec<f64> {
     if x1 == x2 {
-        return vec![(x1, y1)];
+        return vec![y1];
     }
     let fx1: f64 = x1 as f64;
     let fx2: f64 = x2 as f64;
@@ -36,7 +36,7 @@ fn lerp(x1: i32, y1: f64, x2: i32, y2: f64) -> Vec<(i32, f64)> {
     let b: f64 = y1 - (m * fx1);
     assert_eq_f64!(y1, (m * fx1) + b, 0.00001);
     assert_eq_f64!(y2, (m * fx2) + b, 0.00001);
-    ops::RangeInclusive::new(x1, x2).map(|x| (x, (x as f64 * m) + b)).collect()
+    ops::RangeInclusive::new(x1, x2).map(|x| (x as f64 * m) + b).collect()
 }
 
 fn draw_line(canvas: &mut WindowCanvas, p0: Point, p1: Point, c: Color) {
@@ -45,18 +45,18 @@ fn draw_line(canvas: &mut WindowCanvas, p0: Point, p1: Point, c: Color) {
             true => (p1, p0),
             false => (p0, p1)
         };
-        let line = lerp(p0.x, p0.y as f64, p1.x, p1.y as f64);
-        for point in line {
-            put_color(canvas, Point::new(point.0, point.1 as i32), c);
+        let ys = lerp(p0.x, p0.y as f64, p1.x, p1.y as f64);
+        for point in ys.iter().zip(p0.x..=p1.x) {
+            put_color(canvas, Point::new(point.1, *point.0 as i32), c);
         }
     } else {
         let (p0, p1) = match p0.y > p1.y {
             true => (p1, p0),
             false => (p0, p1)
         };
-        let line = lerp(p0.y, p0.x as f64, p1.y, p1.x as f64);
-        for point in line {
-            put_color(canvas, Point::new(point.1 as i32, point.0), c);
+        let xs = lerp(p0.y, p0.x as f64, p1.y, p1.x as f64);
+        for point in xs.iter().zip(p0.y..=p1.y) {
+            put_color(canvas, Point::new(*point.0 as i32, point.1), c);
         }
     }
 }
