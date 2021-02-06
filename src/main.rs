@@ -61,6 +61,12 @@ fn draw_line(canvas: &mut WindowCanvas, p0: Point, p1: Point, c: Color) {
     }
 }
 
+fn draw_triangle(canvas: &mut WindowCanvas, p0: Point, p1: Point, p2: Point, c: Color) {
+    draw_line(canvas, p0, p1, c);
+    draw_line(canvas, p0, p2, c);
+    draw_line(canvas, p1, p2, c);
+}
+
 pub fn main() {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
@@ -79,7 +85,12 @@ pub fn main() {
     let mut rng = WyRand::new();
     'running: loop {
         // put_color(&mut canvas, Point::new(rng.generate_range::<u32>(1, 800) as i32, rng.generate_range::<u32>(1, 600) as i32), Color::BLACK);
-        draw_line(&mut canvas, Point::new(400, 300), Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32), Color::BLACK);
+        // draw_line(&mut canvas, Point::new(400, 300), Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32), Color::BLACK);
+        draw_triangle(&mut canvas,
+                      Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
+                      Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
+                      Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
+                      Color::BLACK);
 
         for event in event_pump.poll_iter() {
             match event {
