@@ -67,6 +67,51 @@ fn draw_triangle(canvas: &mut WindowCanvas, p0: Point, p1: Point, p2: Point, c: 
     draw_line(canvas, p1, p2, c);
 }
 
+fn draw_filled_triangle(canvas: &mut WindowCanvas, p0: Point, p1: Point, p2: Point, outline_color: Color, fill_color: Color) {
+    // Sort points so that p0.y < p1.y < p2.y
+    let (p0, p1) = match p1.y < p0.y {
+        true => (p1, p0),
+        false => (p0, p1)
+    };
+    let (p0, p2) = match p2.y < p0.y {
+        true => (p2, p0),
+        false => (p0, p2)
+    };
+    let (p1, p2) = match p2.y < p1.y {
+        true => (p2, p1),
+        false => (p1, p2)
+    };
+    assert!(p0.y <= p1.y && p1.y <= p2.y);
+
+    // Create vecs of x coords of lines 01, 12, 02
+    // 02 is long, 01 + 12 are shorts
+    let mut x01 = lerp(p0.y, p0.x as f64, p1.y, p1.x as f64);
+    let x12 = lerp(p1.y, p1.x as f64, p2.y, p2.x as f64);
+    let x02 = lerp(p0.y, p0.x as f64, p2.y, p2.x as f64);
+    // End of 01 and start of 02 are same point
+    x01.pop();
+    // Combine 2 short sides
+    let mut x01_12 = x01.clone();
+    x01_12.extend(x12);
+    // Make immutable, costly so disabled
+    // let x01_12 = &*x01_12.iter().collect::<Vec<_>>();
+
+
+    let m = x02.len() / 2;
+    let (x_left, x_right) = match x02[m] < x01_12[m] {
+        true => (x02, x01_12),
+        false => (x01_12, x02)
+    };
+
+
+    for y in p0.y..p2.y {
+        for x in x_left[(y - p0.y) as usize] as i32..x_right[(y - p0.y) as usize] as i32 {
+            put_color(canvas, Point::new(x, y), fill_color);
+        }
+    }
+    draw_triangle(canvas, p0, p1, p2, outline_color);
+}
+
 pub fn main() {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
@@ -78,7 +123,7 @@ pub fn main() {
 
     let mut canvas = window.into_canvas().build().unwrap();
 
-    canvas.set_draw_color(Color::RGB(0, 255, 255));
+    canvas.set_draw_color(Color::WHITE);
     canvas.clear();
     canvas.present();
     let mut event_pump = sdl_context.event_pump().unwrap();
@@ -86,11 +131,16 @@ pub fn main() {
     'running: loop {
         // put_color(&mut canvas, Point::new(rng.generate_range::<u32>(1, 800) as i32, rng.generate_range::<u32>(1, 600) as i32), Color::BLACK);
         // draw_line(&mut canvas, Point::new(400, 300), Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32), Color::BLACK);
-        draw_triangle(&mut canvas,
+        // draw_triangle(&mut canvas,
+        //               Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
+        //               Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
+        //               Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
+        //               Color::BLACK);
+        draw_filled_triangle(&mut canvas,
                       Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
                       Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
                       Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
-                      Color::BLACK);
+                      Color::BLACK, Color::GREEN);
 
         for event in event_pump.poll_iter() {
             match event {
