@@ -1,14 +1,15 @@
 use std::ops;
-
-use glam::{DVec2, DVec3, DVec4, DQuat};
-pub use glam::{IVec2, IVec3};
-pub use glam::{Vec3Swizzles, Vec4Swizzles};
 use std::mem::transmute;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
+use glam::{DVec2, DVec3, DVec4, DQuat};
+pub use glam::{IVec2, IVec3};
+pub use glam::{Vec3Swizzles, Vec4Swizzles};
+
 // Annoying way to change float precision easily
 pub type FP = f64;
+pub use std::f64::consts::*;
 
 pub type Vec2 = DVec2;
 pub type Vec3 = DVec3;

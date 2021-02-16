@@ -14,6 +14,7 @@ use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::rect::Point;
 use sdl2::render::{WindowCanvas};
+use sdl2::mouse::MouseWheelDirection;
 
 mod math;
 use math::*;
@@ -179,6 +180,7 @@ pub fn main() {
                 Event::KeyDown { keycode: Some(Keycode::D), .. } => {
                     camera.move_(Vec3::new(0.1, 0.0, 0.0));
                 },
+                Event::MouseWheel { y, .. } => { camera.change_fov((camera.fov as i32 + y) as u8); },
                 _ => {}
             }
         }

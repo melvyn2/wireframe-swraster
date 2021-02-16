@@ -5,6 +5,8 @@ use crate::math::*;
 pub struct Camera {
     pub pos: Vec3,
     rot: Quat,
+    res: (u32, u32),
+    pub fov: u8,
     pub viewport: Vec4
 }
 
@@ -12,45 +14,30 @@ impl Camera {
     pub fn new(pos: Option<Vec3>, rot: Option<Quat>, fov: Option<u8>, res: (u32, u32)) -> Camera {
         let pos = pos.unwrap_or_default();
         let rot = rot.unwrap_or_default();
-        let viewport = viewport(fov.unwrap_or(90), res, None);
-        Camera{pos, rot, viewport}
+        let fov = fov.unwrap_or(90);
+        let viewport = viewport(fov, res, None);
+        Camera{pos, rot, res, fov, viewport}
     }
     pub fn move_(&mut self, offset: Vec3) {
         self.pos += offset;
+    }
+    pub fn change_fov(&mut self, fov: u8) {
+        if fov <= 0 || fov >= 180 {
+            return;
+        }
+        self.viewport = viewport(fov, self.res, Some(self.viewport.z));
+        self.fov = fov;
     }
 }
 
 fn viewport(fov: u8, res: (u32, u32), d: Option<FP>) -> Vec4 {
     // Create a viewport plane d away from the camera with a matching FOV and aspect ratio
-    // The longer side (according to the ratio will have the full FOV, while the other will be scaled accordingly
-    /*
-        Top-down view
-                 B
-      A ____________________ D
-        \        |
-         \       |
-          \      |
-           \     |
-            \    |
-             \   |
-              \  |
-               \ |
-                \|
-                 C
-        _BC = d (distance from viewport)
-        ∠b = 90°
-        ∠c = (fov/2)°
-        ∠a = 90 - (fov/2)°
+    // The longer side according to the ratio will have the full FOV, while the other will be scaled accordingly
 
-        Solving for _AD (viewport width)
-        _AD = _AB * 2
-        _AB/sin ∠c = _BC/sin ∠a
-        _AB = (_BC/sin ∠a) * sin ∠c
-     */
-    let side_bc = d.unwrap_or(1 as FP);
-    let angle_c = (fov as FP)/(2 as FP);
-    let angle_a = (90 as FP) - angle_c;
-    let side_ab = (side_bc / angle_a.sin()) * angle_c.sin();
+    let side_bc = d.unwrap_or(1.0);
+    let angle_c = (fov as FP)/180.0 * crate::math::FRAC_PI_2;
+    let angle_a = crate::math::FRAC_PI_2 - angle_c;
+    let side_ab = side_bc * (angle_c.sin() / angle_a.sin());
 
     // Resize shorter size to fit ratio
     let ratio = res.0 as FP/res.1 as FP;
