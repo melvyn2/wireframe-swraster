@@ -2,7 +2,6 @@
 #![feature(option_expect_none)]
 
 use std::time::Duration;
-use std::collections::HashMap;
 use std::rc::Rc;
 
 extern crate nanorand;
@@ -125,8 +124,9 @@ pub fn main() {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
 
-    let window = video_subsystem.window("rust-sdl2 demo", 800, 600)
+    let window = video_subsystem.window("graphics demo", 800, 600)
         .position_centered()
+        .resizable()
         .build()
         .unwrap();
 
@@ -135,11 +135,10 @@ pub fn main() {
     canvas.clear();
     canvas.present();
     let mut event_pump = sdl_context.event_pump().unwrap();
-    // let mut rng = WyRand::new();
+    let mut rng = WyRand::new();
     let mut camera = Camera::new(Some(Vec3::new(0.0, 0.0, -10.0)), None, Some(90u8), (800, 600));
-    let obj = cube(2);
-    render_object(&mut canvas, &camera, &obj);
-    // sleep(Duration::new(5, 0));
+    // let obj = cube(2);
+    // render_object(&mut canvas, &camera, &obj);
     'running: loop {
         // put_color(&mut canvas, Point::new(rng.generate_range::<u32>(1, 800) as i32, rng.generate_range::<u32>(1, 600) as i32), Color::BLACK);
         // draw_line(&mut canvas, Point::new(400, 300), Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32), Color::BLACK);
@@ -157,7 +156,10 @@ pub fn main() {
         //                      XYH::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32, rand_percent(&mut rng)),
         //                      XYH::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32, rand_percent(&mut rng)),
         //                      XYH::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32, rand_percent(&mut rng)),
-        //                 Color::GREEN);
+        //                 Color::from((rng.generate_range::<u8>(0, 255), rng.generate_range::<u8>(0, 255), rng.generate_range::<u8>(0, 255))));
+        draw_multishade_triangle(&mut canvas, Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
+                                               Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
+                                               Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32), Color::RED, Color::GREEN, Color::BLUE);
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit { .. } |
@@ -180,9 +182,9 @@ pub fn main() {
                 _ => {}
             }
         }
-        canvas.set_draw_color(Color::WHITE);
-        canvas.clear();
-        render_object(&mut canvas, &camera, &obj);
+        // canvas.set_draw_color(Color::WHITE);
+        // canvas.clear();
+        // render_object(&mut canvas, &camera, &obj);
         canvas.present();
         std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 75));
     }
