@@ -26,8 +26,7 @@ mod flatshapes;
 use flatshapes::*;
 
 struct Mesh {
-    verts: Vec<Vec3>,
-    tris: Vec<(Vec3, Vec3, Vec3)>
+    tris: Vec<Vec3>
 }
 struct Object {
     pos: Vec3,
@@ -46,19 +45,19 @@ fn cube(scale: i32) -> Object {
                      Vec3::new(scale as FP, -scale as FP, scale as FP),
                      Vec3::new(scale as FP, scale as FP, scale as FP),
                      Vec3::new(-scale as FP, scale as FP, scale as FP)];
-    let tris = vec![(verts[0], verts[1], verts[2]),
-                             (verts[0], verts[2], verts[3]),
-                             (verts[4], verts[0], verts[3]),
-                             (verts[4], verts[3], verts[7]),
-                             (verts[5], verts[4], verts[7]),
-                             (verts[5], verts[7], verts[6]),
-                             (verts[1], verts[5], verts[6]),
-                             (verts[1], verts[6], verts[2]),
-                             (verts[4], verts[5], verts[1]),
-                             (verts[4], verts[1], verts[0]),
-                             (verts[2], verts[6], verts[7]),
-                             (verts[2], verts[7], verts[3])];
-    let mesh = Mesh{verts, tris};
+    let tris = vec![verts[0], verts[1], verts[2],
+                             verts[0], verts[2], verts[3],
+                             verts[4], verts[0], verts[3],
+                             verts[4], verts[3], verts[7],
+                             verts[5], verts[4], verts[7],
+                             verts[5], verts[7], verts[6],
+                             verts[1], verts[5], verts[6],
+                             verts[1], verts[6], verts[2],
+                             verts[4], verts[5], verts[1],
+                             verts[4], verts[1], verts[0],
+                             verts[2], verts[6], verts[7],
+                             verts[2], verts[7], verts[3]];
+    let mesh = Mesh{tris};
     Object{pos, rot, mesh: Rc::new(mesh)}
 }
 
@@ -87,14 +86,11 @@ fn project_vertex(camera: &Camera, point: &Vec3) -> Point {
 }
 
 fn render_object(canvas: &mut WindowCanvas, camera: &Camera, obj: &Object) {
-    let mut vmap: HashMap<u64, Point> = HashMap::new();
-    for v in &obj.mesh.verts {
-        vmap.insert(vec3_hash(v), project_vertex(camera, &(*v + obj.pos))).expect_none("Dupe vertex key");
-    }
-    for (t0, t1, t2) in &obj.mesh.tris {
-        draw_triangle(canvas, *vmap.get(&vec3_hash(t0)).unwrap(),
-                      *vmap.get(&vec3_hash(t1)).unwrap(),
-                      *vmap.get(&vec3_hash(t2)).unwrap(), Color::BLACK);
+    assert_eq!(obj.mesh.tris.len() % 3, 0);
+    for idx in (0..obj.mesh.tris.len()).step_by(3) {
+        draw_triangle(canvas, project_vertex(camera, &obj.mesh.tris[idx]),
+                      project_vertex(camera, &obj.mesh.tris[idx + 1]),
+                      project_vertex(camera, &obj.mesh.tris[idx + 2]), Color::BLACK);
     }
 }
 
