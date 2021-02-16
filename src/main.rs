@@ -1,6 +1,9 @@
 #![feature(destructuring_assignment)]
+#![feature(option_expect_none)]
 
 use std::time::Duration;
+use std::collections::HashMap;
+use std::rc::Rc;
 
 extern crate nanorand;
 use nanorand::{RNG, WyRand};
@@ -10,7 +13,7 @@ use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::rect::Point;
-use sdl2::render::{WindowCanvas, Canvas};
+use sdl2::render::{WindowCanvas};
 
 mod math;
 use math::*;
@@ -21,18 +24,46 @@ use camera::*;
 mod flatshapes;
 use flatshapes::*;
 
-struct Mesh<'a> {
-    vertices: Vec<Vec3>,
-    tris: Vec<(&'a Vec3, &'a Vec3, &'a Vec3)>
+struct Mesh {
+    verts: Vec<Vec3>,
+    tris: Vec<(Vec3, Vec3, Vec3)>
 }
-struct Object<'a> {
+struct Object {
     pos: Vec3,
     rot: Quat,
-    mesh: Mesh<'a>
+    mesh: Rc<Mesh>
 }
-struct Scene<'a> {
+
+fn cube(scale: i32) -> Object {
+    let pos = Vec3::zero();
+    let rot = Quat::default();
+    let verts: Vec<Vec3> = vec![Vec3::new(-scale as FP, -scale as FP, 0.0),
+                     Vec3::new(scale as FP, -scale as FP, 0.0),
+                     Vec3::new(scale as FP, scale as FP, 0.0),
+                     Vec3::new(-scale as FP, scale as FP, 0.0),
+                     Vec3::new(-scale as FP, -scale as FP, scale as FP),
+                     Vec3::new(scale as FP, -scale as FP, scale as FP),
+                     Vec3::new(scale as FP, scale as FP, scale as FP),
+                     Vec3::new(-scale as FP, scale as FP, scale as FP)];
+    let tris = vec![(verts[0], verts[1], verts[2]),
+                             (verts[0], verts[2], verts[3]),
+                             (verts[4], verts[0], verts[3]),
+                             (verts[4], verts[3], verts[7]),
+                             (verts[5], verts[4], verts[7]),
+                             (verts[5], verts[7], verts[6]),
+                             (verts[1], verts[5], verts[6]),
+                             (verts[1], verts[6], verts[2]),
+                             (verts[4], verts[5], verts[1]),
+                             (verts[4], verts[1], verts[0]),
+                             (verts[2], verts[6], verts[7]),
+                             (verts[2], verts[7], verts[3])];
+    let mesh = Mesh{verts, tris};
+    Object{pos, rot, mesh: Rc::new(mesh)}
+}
+
+struct Scene {
     camera: Camera,
-    objects: Vec<Object<'a>>
+    objects: Vec<Object>
 }
 
 fn rand_percent(rng: &mut WyRand) -> FP {
@@ -44,7 +75,7 @@ fn project_vertex(camera: &Camera, point: &Vec3) -> Point {
     let point_local = *point - camera.pos;
     // TODO apply camera rotation
 
-    if point_local.z <= 1.0 {
+    if point_local.z <= camera.viewport.z {
         return Point::new(0, 0)
     }
     // camera.viewport.z / point_local.z  projects to viewport
@@ -55,33 +86,42 @@ fn project_vertex(camera: &Camera, point: &Vec3) -> Point {
 }
 
 fn render_object(canvas: &mut WindowCanvas, camera: &Camera, obj: &Object) {
+    let mut vmap: HashMap<u64, Point> = HashMap::new();
+    for v in &obj.mesh.verts {
+        vmap.insert(vec3_hash(v), project_vertex(camera, &(*v + obj.pos))).expect_none("Dupe vertex key");
+    }
+    for (t0, t1, t2) in &obj.mesh.tris {
+        draw_triangle(canvas, *vmap.get(&vec3_hash(t0)).unwrap(),
+                      *vmap.get(&vec3_hash(t1)).unwrap(),
+                      *vmap.get(&vec3_hash(t2)).unwrap(), Color::BLACK);
+    }
 }
 
 fn draw_cube(canvas: &mut WindowCanvas, scale: i32, camera: &Camera) {
-    let vAf = Vec3::new(-scale as FP, -scale as FP, 0.0);
-    let vBf = Vec3::new(scale as FP, -scale as FP, 0.0);
-    let vCf = Vec3::new(scale as FP, scale as FP, 0.0);
-    let vDf = Vec3::new(-scale as FP, scale as FP, 0.0);
+    let fv_a = Vec3::new(-scale as FP, -scale as FP, 0.0);
+    let fv_b = Vec3::new(scale as FP, -scale as FP, 0.0);
+    let fv_c = Vec3::new(scale as FP, scale as FP, 0.0);
+    let fv_d = Vec3::new(-scale as FP, scale as FP, 0.0);
 
-    let vAb = Vec3::new(-scale as FP, -scale as FP, scale as FP);
-    let vBb = Vec3::new(scale as FP, -scale as FP, scale as FP);
-    let vCb = Vec3::new(scale as FP, scale as FP, scale as FP);
-    let vDb = Vec3::new(-scale as FP, scale as FP, scale as FP);
+    let bv_a = Vec3::new(-scale as FP, -scale as FP, scale as FP);
+    let bc_b = Vec3::new(scale as FP, -scale as FP, scale as FP);
+    let bv_d = Vec3::new(scale as FP, scale as FP, scale as FP);
+    let bv_e = Vec3::new(-scale as FP, scale as FP, scale as FP);
 
-    draw_line(canvas, project_vertex(camera, &vAf), project_vertex(camera, &vBf), Color::BLACK);
-    draw_line(canvas, project_vertex(camera, &vBf), project_vertex(camera, &vCf), Color::BLACK);
-    draw_line(canvas, project_vertex(camera, &vCf), project_vertex(camera, &vDf), Color::BLACK);
-    draw_line(canvas, project_vertex(camera, &vDf), project_vertex(camera, &vAf), Color::BLACK);
+    draw_line(canvas, project_vertex(camera, &fv_a), project_vertex(camera, &fv_b), Color::BLACK);
+    draw_line(canvas, project_vertex(camera, &fv_b), project_vertex(camera, &fv_c), Color::BLACK);
+    draw_line(canvas, project_vertex(camera, &fv_c), project_vertex(camera, &fv_d), Color::BLACK);
+    draw_line(canvas, project_vertex(camera, &fv_d), project_vertex(camera, &fv_a), Color::BLACK);
 
-    draw_line(canvas, project_vertex(camera, &vAb), project_vertex(camera, &vBb), Color::BLACK);
-    draw_line(canvas, project_vertex(camera, &vBb), project_vertex(camera, &vCb), Color::BLACK);
-    draw_line(canvas, project_vertex(camera, &vCb), project_vertex(camera, &vDb), Color::BLACK);
-    draw_line(canvas, project_vertex(camera, &vDb), project_vertex(camera, &vAb), Color::BLACK);
+    draw_line(canvas, project_vertex(camera, &bv_a), project_vertex(camera, &bc_b), Color::BLACK);
+    draw_line(canvas, project_vertex(camera, &bc_b), project_vertex(camera, &bv_d), Color::BLACK);
+    draw_line(canvas, project_vertex(camera, &bv_d), project_vertex(camera, &bv_e), Color::BLACK);
+    draw_line(canvas, project_vertex(camera, &bv_e), project_vertex(camera, &bv_a), Color::BLACK);
 
-    draw_line(canvas, project_vertex(camera, &vAf), project_vertex(camera, &vAb), Color::BLACK);
-    draw_line(canvas, project_vertex(camera, &vBf), project_vertex(camera, &vBb), Color::BLACK);
-    draw_line(canvas, project_vertex(camera, &vCf), project_vertex(camera, &vCb), Color::BLACK);
-    draw_line(canvas, project_vertex(camera, &vDf), project_vertex(camera, &vDb), Color::BLACK);
+    draw_line(canvas, project_vertex(camera, &fv_a), project_vertex(camera, &bv_a), Color::BLACK);
+    draw_line(canvas, project_vertex(camera, &fv_b), project_vertex(camera, &bc_b), Color::BLACK);
+    draw_line(canvas, project_vertex(camera, &fv_c), project_vertex(camera, &bv_d), Color::BLACK);
+    draw_line(canvas, project_vertex(camera, &fv_d), project_vertex(camera, &bv_e), Color::BLACK);
 }
 
 pub fn main() {
@@ -94,11 +134,14 @@ pub fn main() {
         .unwrap();
 
     let mut canvas = window.into_canvas().build().unwrap();
+    canvas.set_draw_color(Color::WHITE);
     canvas.clear();
     canvas.present();
     let mut event_pump = sdl_context.event_pump().unwrap();
-    let mut rng = WyRand::new();
+    // let mut rng = WyRand::new();
     let mut camera = Camera::new(Some(Vec3::new(0.0, 0.0, -10.0)), None, Some(90u8), (800, 600));
+    let obj = cube(2);
+    render_object(&mut canvas, &camera, &obj);
     // sleep(Duration::new(5, 0));
     'running: loop {
         // put_color(&mut canvas, Point::new(rng.generate_range::<u32>(1, 800) as i32, rng.generate_range::<u32>(1, 600) as i32), Color::BLACK);
@@ -141,7 +184,7 @@ pub fn main() {
         }
         canvas.set_draw_color(Color::WHITE);
         canvas.clear();
-        draw_cube(&mut canvas, 1, &camera);
+        render_object(&mut canvas, &camera, &obj);
         canvas.present();
         std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 75));
     }
