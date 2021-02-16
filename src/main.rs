@@ -1,5 +1,7 @@
 #![feature(destructuring_assignment)]
 #![feature(option_expect_none)]
+#![feature(test)]
+#![allow(dead_code)]
 
 use std::time::Duration;
 use std::rc::Rc;
@@ -23,6 +25,9 @@ use camera::*;
 
 mod flatshapes;
 use flatshapes::*;
+
+#[cfg(test)]
+mod bench;
 
 struct Mesh {
     tris: Vec<Vec3>
