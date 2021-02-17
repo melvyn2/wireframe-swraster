@@ -17,10 +17,12 @@ use sdl2::render::WindowCanvas;
 mod camera;
 mod flatshapes;
 mod math;
+mod teapot;
 
 use camera::*;
 use flatshapes::*;
 use math::*;
+use teapot::teapot;
 
 #[cfg(test)]
 mod bench;
@@ -210,10 +212,10 @@ pub fn main() {
         (800, 600),
     );
     let obj = Object {
-        pos: Vec3::zero(),
+        pos: Vec3::new(0.0, 3.0, 0.0),
         rot: Quat::default(),
         scale: 4.0,
-        mesh: Rc::new(cube(1)),
+        mesh: Rc::new(teapot()),
     };
     render_object(&mut canvas, &camera, &obj);
     'running: loop {

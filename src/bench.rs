@@ -116,6 +116,11 @@ fn project(b: &mut Bencher) {
 fn cube(b: &mut Bencher) {
     let mut canvas = get_test_canvas();
     let camera = Camera::new(None, None, None, (800, 600));
-    let cube = crate::cube(2);
+    let cube = Object {
+        pos: Vec3::zero(),
+        rot: Quat::default(),
+        scale: 4.0,
+        mesh: Rc::new(crate::cube(1)),
+    };
     b.iter(|| render_object(&mut canvas, &camera, &cube));
 }
