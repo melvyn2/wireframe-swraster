@@ -120,7 +120,7 @@ fn cube(b: &mut Bencher) {
         pos: Vec3::zero(),
         rot: Quat::default(),
         scale: 4.0,
-        mesh: Rc::new(crate::cube(1)),
+        mesh: Rc::new(crate::meshes::cube()),
     };
     b.iter(|| render_object(&mut canvas, &camera, &cube));
 }

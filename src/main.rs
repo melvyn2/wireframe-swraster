@@ -12,51 +12,20 @@ use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::rect::Point;
-use sdl2::render::WindowCanvas;
 
 mod camera;
 mod flatshapes;
 mod math;
-mod teapot;
+mod meshes;
+mod object;
 
 use camera::*;
-use flatshapes::*;
 use math::*;
-use teapot::teapot;
+use meshes::*;
+use object::*;
 
 #[cfg(test)]
 mod bench;
-
-struct Mesh {
-    tris: Vec<Vec3>,
-}
-
-struct Object {
-    pos: Vec3,
-    rot: Quat,
-    scale: FP,
-    mesh: Rc<Vec<Vec3>>,
-}
-
-fn cube(scale: i32) -> Vec<Vec3> {
-    let scale = scale as FP;
-    let verts: Vec<Vec3> = vec![
-        Vec3::new(-scale, -scale, -scale),
-        Vec3::new(scale, -scale, -scale),
-        Vec3::new(scale, scale, -scale),
-        Vec3::new(-scale, scale, -scale),
-        Vec3::new(-scale, -scale, scale),
-        Vec3::new(scale, -scale, scale),
-        Vec3::new(scale, scale, scale),
-        Vec3::new(-scale, scale, scale),
-    ];
-    vec![
-        verts[0], verts[1], verts[2], verts[0], verts[2], verts[3], verts[4], verts[0], verts[3],
-        verts[4], verts[3], verts[7], verts[5], verts[4], verts[7], verts[5], verts[7], verts[6],
-        verts[1], verts[5], verts[6], verts[1], verts[6], verts[2], verts[4], verts[5], verts[1],
-        verts[4], verts[1], verts[0], verts[2], verts[6], verts[7], verts[2], verts[7], verts[3],
-    ]
-}
 
 struct Scene {
     camera: Camera,
@@ -79,113 +48,6 @@ fn project_vertex(camera: &Camera, point: &Vec3) -> Point {
     // camera.viewport.w scales to canvas
     let res = (vp_res + (camera.viewport.xy() / 2.0)) * camera.viewport.w;
     Point::new(res.x as i32, res.y as i32)
-}
-
-fn render_object(canvas: &mut WindowCanvas, camera: &Camera, obj: &Object) {
-    assert_eq!(obj.mesh.len() % 3, 0);
-    for idx in (0..obj.mesh.len()).step_by(3) {
-        draw_triangle(
-            canvas,
-            project_vertex(camera, &((obj.rot * obj.mesh[idx] * obj.scale) + obj.pos)),
-            project_vertex(
-                camera,
-                &((obj.rot * obj.mesh[idx + 1] * obj.scale) + obj.pos),
-            ),
-            project_vertex(
-                camera,
-                &((obj.rot * obj.mesh[idx + 2] * obj.scale) + obj.pos),
-            ),
-            Color::BLACK,
-        );
-    }
-}
-
-fn draw_cube(canvas: &mut WindowCanvas, scale: i32, camera: &Camera) {
-    let scale = scale as FP;
-    let fv_a = Vec3::new(-scale, -scale, 0.0);
-    let fv_b = Vec3::new(scale, -scale, 0.0);
-    let fv_c = Vec3::new(scale, scale, 0.0);
-    let fv_d = Vec3::new(-scale, scale, 0.0);
-
-    let bv_a = Vec3::new(-scale, -scale, scale);
-    let bc_b = Vec3::new(scale, -scale, scale);
-    let bv_d = Vec3::new(scale, scale, scale);
-    let bv_e = Vec3::new(-scale, scale, scale);
-
-    draw_line(
-        canvas,
-        project_vertex(camera, &fv_a),
-        project_vertex(camera, &fv_b),
-        Color::BLACK,
-    );
-    draw_line(
-        canvas,
-        project_vertex(camera, &fv_b),
-        project_vertex(camera, &fv_c),
-        Color::BLACK,
-    );
-    draw_line(
-        canvas,
-        project_vertex(camera, &fv_c),
-        project_vertex(camera, &fv_d),
-        Color::BLACK,
-    );
-    draw_line(
-        canvas,
-        project_vertex(camera, &fv_d),
-        project_vertex(camera, &fv_a),
-        Color::BLACK,
-    );
-
-    draw_line(
-        canvas,
-        project_vertex(camera, &bv_a),
-        project_vertex(camera, &bc_b),
-        Color::BLACK,
-    );
-    draw_line(
-        canvas,
-        project_vertex(camera, &bc_b),
-        project_vertex(camera, &bv_d),
-        Color::BLACK,
-    );
-    draw_line(
-        canvas,
-        project_vertex(camera, &bv_d),
-        project_vertex(camera, &bv_e),
-        Color::BLACK,
-    );
-    draw_line(
-        canvas,
-        project_vertex(camera, &bv_e),
-        project_vertex(camera, &bv_a),
-        Color::BLACK,
-    );
-
-    draw_line(
-        canvas,
-        project_vertex(camera, &fv_a),
-        project_vertex(camera, &bv_a),
-        Color::BLACK,
-    );
-    draw_line(
-        canvas,
-        project_vertex(camera, &fv_b),
-        project_vertex(camera, &bc_b),
-        Color::BLACK,
-    );
-    draw_line(
-        canvas,
-        project_vertex(camera, &fv_c),
-        project_vertex(camera, &bv_d),
-        Color::BLACK,
-    );
-    draw_line(
-        canvas,
-        project_vertex(camera, &fv_d),
-        project_vertex(camera, &bv_e),
-        Color::BLACK,
-    );
 }
 
 pub fn main() {
@@ -217,7 +79,7 @@ pub fn main() {
         scale: 4.0,
         mesh: Rc::new(teapot()),
     };
-    render_object(&mut canvas, &camera, &obj);
+    obj.render(&mut canvas, &camera);
     'running: loop {
         // put_color(&mut canvas, Point::new(rng.generate_range::<u32>(1, 800) as i32, rng.generate_range::<u32>(1, 600) as i32), Color::BLACK);
         // draw_line(&mut canvas, Point::new(400, 300), Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32), Color::BLACK);
@@ -315,7 +177,7 @@ pub fn main() {
         // camera.rot.normalize();
         canvas.set_draw_color(Color::WHITE);
         canvas.clear();
-        render_object(&mut canvas, &camera, &obj);
+        obj.render(&mut canvas, &camera);
         canvas.present();
         std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 75));
     }

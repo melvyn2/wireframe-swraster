@@ -1733,3 +1733,23 @@ pub fn teapot() -> Vec<Vec3> {
         Vec3::new(0.458200, -1.255600, 0.269100),
     ]
 }
+
+pub fn cube() -> Vec<Vec3> {
+    let scale = 1.0;
+    let verts: Vec<Vec3> = vec![
+        Vec3::new(-scale, -scale, -scale),
+        Vec3::new(scale, -scale, -scale),
+        Vec3::new(scale, scale, -scale),
+        Vec3::new(-scale, scale, -scale),
+        Vec3::new(-scale, -scale, scale),
+        Vec3::new(scale, -scale, scale),
+        Vec3::new(scale, scale, scale),
+        Vec3::new(-scale, scale, scale),
+    ];
+    vec![
+        verts[0], verts[1], verts[2], verts[0], verts[2], verts[3], verts[4], verts[0], verts[3],
+        verts[4], verts[3], verts[7], verts[5], verts[4], verts[7], verts[5], verts[7], verts[6],
+        verts[1], verts[5], verts[6], verts[1], verts[6], verts[2], verts[4], verts[5], verts[1],
+        verts[4], verts[1], verts[0], verts[2], verts[6], verts[7], verts[2], verts[7], verts[3],
+    ]
+}
