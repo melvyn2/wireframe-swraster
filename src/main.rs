@@ -10,12 +10,11 @@ extern crate nanorand;
 use nanorand::{RNG, WyRand};
 
 extern crate sdl2;
-use sdl2::event::Event;
+use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::rect::Point;
 use sdl2::render::{WindowCanvas};
-use sdl2::mouse::MouseWheelDirection;
 
 mod math;
 use math::*;
@@ -40,7 +39,7 @@ struct Object {
 
 fn cube(scale: i32) -> Object {
     let pos = Vec3::zero();
-    let rot = Quat::default();
+    let rot = Quat::from_rotation_y(0.2);
     let verts: Vec<Vec3> = vec![Vec3::new(-scale as FP, -scale as FP, 0.0),
                      Vec3::new(scale as FP, -scale as FP, 0.0),
                      Vec3::new(scale as FP, scale as FP, 0.0),
@@ -76,7 +75,7 @@ fn rand_percent(rng: &mut WyRand) -> FP {
 
 fn project_vertex(camera: &Camera, point: &Vec3) -> Point {
     // Switch to camera space
-    let point_local = *point - camera.pos;
+    let point_local = camera.rot * (*point - camera.pos);
     // TODO apply camera rotation
 
     if point_local.z <= camera.viewport.z {
@@ -140,10 +139,10 @@ pub fn main() {
     canvas.clear();
     canvas.present();
     let mut event_pump = sdl_context.event_pump().unwrap();
-    let mut rng = WyRand::new();
+    // let mut rng = WyRand::new();
     let mut camera = Camera::new(Some(Vec3::new(0.0, 0.0, -10.0)), None, Some(90u8), (800, 600));
-    // let obj = cube(2);
-    // render_object(&mut canvas, &camera, &obj);
+    let obj = cube(2);
+    render_object(&mut canvas, &camera, &obj);
     'running: loop {
         // put_color(&mut canvas, Point::new(rng.generate_range::<u32>(1, 800) as i32, rng.generate_range::<u32>(1, 600) as i32), Color::BLACK);
         // draw_line(&mut canvas, Point::new(400, 300), Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32), Color::BLACK);
@@ -162,9 +161,9 @@ pub fn main() {
         //                      XYH::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32, rand_percent(&mut rng)),
         //                      XYH::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32, rand_percent(&mut rng)),
         //                 Color::from((rng.generate_range::<u8>(0, 255), rng.generate_range::<u8>(0, 255), rng.generate_range::<u8>(0, 255))));
-        draw_multishade_triangle(&mut canvas, Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
-                                               Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
-                                               Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32), Color::RED, Color::GREEN, Color::BLUE);
+        // draw_multishade_triangle(&mut canvas, Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
+        //                                        Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
+        //                                        Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32), Color::RED, Color::GREEN, Color::BLUE);
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit { .. } |
@@ -172,24 +171,37 @@ pub fn main() {
                     break 'running;
                 },
                 Event::KeyDown { keycode: Some(Keycode::W), .. } => {
-                    camera.move_(Vec3::new(0.0, 0.0, 0.1));
+                    camera.local_move(Vec3::new(0.0, 0.0, 0.1));
                 },
                 Event::KeyDown { keycode: Some(Keycode::A), .. } => {
-                    camera.move_(Vec3::new(-0.1, 0.0, 0.0));
+                    camera.local_move(Vec3::new(-0.1, 0.0, 0.0));
                 },
                 Event::KeyDown { keycode: Some(Keycode::S), .. } => {
-                    camera.move_(Vec3::new(0.0, 0.0, -0.1));
+                    camera.local_move(Vec3::new(0.0, 0.0, -0.1));
                 },
                 Event::KeyDown { keycode: Some(Keycode::D), .. } => {
-                    camera.move_(Vec3::new(0.1, 0.0, 0.0));
+                    camera.local_move(Vec3::new(0.1, 0.0, 0.0));
+                },
+                Event::KeyDown { keycode: Some(Keycode::Up), .. } => {
+                    camera.look(Quat::from_rotation_x(-0.01));
+                },
+                Event::KeyDown { keycode: Some(Keycode::Down), .. } => {
+                    camera.look(Quat::from_rotation_x(0.01));
+                },
+                Event::KeyDown { keycode: Some(Keycode::Left), .. } => {
+                    camera.look(Quat::from_rotation_y(0.01));
+                },
+                Event::KeyDown { keycode: Some(Keycode::Right), .. } => {
+                    camera.look(Quat::from_rotation_y(-0.01));
                 },
                 Event::MouseWheel { y, .. } => { camera.change_fov((camera.fov as i32 + y) as u8); },
+                Event::Window { win_event: WindowEvent::SizeChanged(x, y), .. } => {camera.change_res((x as u32, y as u32)); }
                 _ => {}
             }
         }
-        // canvas.set_draw_color(Color::WHITE);
-        // canvas.clear();
-        // render_object(&mut canvas, &camera, &obj);
+        canvas.set_draw_color(Color::WHITE);
+        canvas.clear();
+        render_object(&mut canvas, &camera, &obj);
         canvas.present();
         std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 75));
     }

@@ -4,7 +4,7 @@ use crate::math::*;
 
 pub struct Camera {
     pub pos: Vec3,
-    rot: Quat,
+    pub rot: Quat,
     res: (u32, u32),
     pub fov: u8,
     pub viewport: Vec4
@@ -18,8 +18,11 @@ impl Camera {
         let viewport = viewport(fov, res, None);
         Camera{pos, rot, res, fov, viewport}
     }
-    pub fn move_(&mut self, offset: Vec3) {
-        self.pos += offset;
+    pub fn local_move(&mut self, offset: Vec3) {
+        self.pos += self.rot.conjugate() * offset;
+    }
+    pub fn look(&mut self, offset: Quat) {
+        self.rot *= offset;
     }
     pub fn change_fov(&mut self, fov: u8) {
         if fov <= 0 || fov >= 180 {
@@ -27,6 +30,10 @@ impl Camera {
         }
         self.viewport = viewport(fov, self.res, Some(self.viewport.z));
         self.fov = fov;
+    }
+    pub fn change_res(&mut self, res: (u32, u32)) {
+        self.viewport = viewport(self.fov, res, Some(self.viewport.z));
+        self.res = res;
     }
 }
 
