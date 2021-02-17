@@ -1,6 +1,6 @@
-use sdl2::render::WindowCanvas;
-use sdl2::rect::Point;
 use sdl2::pixels::Color;
+use sdl2::rect::Point;
+use sdl2::render::WindowCanvas;
 
 use crate::math::*;
 
@@ -13,7 +13,7 @@ pub fn draw_line(canvas: &mut WindowCanvas, p0: Point, p1: Point, c: Color) {
     if (p1.x - p0.x).abs() > (p1.y - p0.y).abs() {
         let (p0, p1) = match p0.x > p1.x {
             true => (p1, p0),
-            false => (p0, p1)
+            false => (p0, p1),
         };
         let ys = lerp(p0.x, p0.y as FP, p1.x, p1.y as FP);
         for point in ys.iter().zip(p0.x..=p1.x) {
@@ -22,7 +22,7 @@ pub fn draw_line(canvas: &mut WindowCanvas, p0: Point, p1: Point, c: Color) {
     } else {
         let (p0, p1) = match p0.y > p1.y {
             true => (p1, p0),
-            false => (p0, p1)
+            false => (p0, p1),
         };
         let xs = lerp(p0.y, p0.x as FP, p1.y, p1.x as FP);
         for point in xs.iter().zip(p0.y..=p1.y) {
@@ -37,19 +37,26 @@ pub fn draw_triangle(canvas: &mut WindowCanvas, p0: Point, p1: Point, p2: Point,
     draw_line(canvas, p1, p2, c);
 }
 
-pub fn draw_filled_triangle(canvas: &mut WindowCanvas, p0: Point, p1: Point, p2: Point, outline_color: Color, fill_color: Color) {
+pub fn draw_filled_triangle(
+    canvas: &mut WindowCanvas,
+    p0: Point,
+    p1: Point,
+    p2: Point,
+    outline_color: Color,
+    fill_color: Color,
+) {
     // Sort points so that p0.y < p1.y < p2.y
     let (p0, p1) = match p1.y < p0.y {
         true => (p1, p0),
-        false => (p0, p1)
+        false => (p0, p1),
     };
     let (p0, p2) = match p2.y < p0.y {
         true => (p2, p0),
-        false => (p0, p2)
+        false => (p0, p2),
     };
     let (p1, p2) = match p2.y < p1.y {
         true => (p2, p1),
-        false => (p1, p2)
+        false => (p1, p2),
     };
     assert!(p0.y <= p1.y && p1.y <= p2.y);
 
@@ -68,7 +75,7 @@ pub fn draw_filled_triangle(canvas: &mut WindowCanvas, p0: Point, p1: Point, p2:
     let m = x02.len() / 2;
     let (x_left, x_right) = match x02[m] < x01_12[m] {
         true => (x02, x01_12),
-        false => (x01_12, x02)
+        false => (x01_12, x02),
     };
 
     for y in p0.y..p2.y {
@@ -82,18 +89,24 @@ pub fn draw_filled_triangle(canvas: &mut WindowCanvas, p0: Point, p1: Point, p2:
     draw_triangle(canvas, p0, p1, p2, outline_color);
 }
 
-pub fn draw_shaded_triangle(canvas: &mut WindowCanvas, p0: XYH, p1: XYH, p2: XYH, colorbase: Color) {
+pub fn draw_shaded_triangle(
+    canvas: &mut WindowCanvas,
+    p0: XYH,
+    p1: XYH,
+    p2: XYH,
+    colorbase: Color,
+) {
     let (p0, p1) = match p1.y < p0.y {
         true => (p1, p0),
-        false => (p0, p1)
+        false => (p0, p1),
     };
     let (p0, p2) = match p2.y < p0.y {
         true => (p2, p0),
-        false => (p0, p2)
+        false => (p0, p2),
     };
     let (p1, p2) = match p2.y < p1.y {
         true => (p2, p1),
-        false => (p1, p2)
+        false => (p1, p2),
     };
     assert!(p0.y <= p1.y && p1.y <= p2.y);
 
@@ -119,7 +132,7 @@ pub fn draw_shaded_triangle(canvas: &mut WindowCanvas, p0: XYH, p1: XYH, p2: XYH
     let m = x02.len() / 2;
     let (x_left, h_left, x_right, h_right) = match x02[m] < x01_12[m] {
         true => (x02, h02, x01_12, h01_12),
-        false => (x01_12, h01_12, x02, h02)
+        false => (x01_12, h01_12, x02, h02),
     };
 
     // Draw triangle
@@ -139,7 +152,15 @@ pub fn draw_shaded_triangle(canvas: &mut WindowCanvas, p0: XYH, p1: XYH, p2: XYH
     // draw_triangle(canvas, Point::new(p0.x, p0.y), Point::new(p1.x, p1.y), Point::new(p2.x, p2.y), colorbase);
 }
 
-pub fn draw_multishade_triangle(canvas: &mut WindowCanvas, p0: Point, p1: Point, p2: Point, c0: Color, c1: Color, c2: Color) {
+pub fn draw_multishade_triangle(
+    canvas: &mut WindowCanvas,
+    p0: Point,
+    p1: Point,
+    p2: Point,
+    c0: Color,
+    c1: Color,
+    c2: Color,
+) {
     // Probably inefficient in so many ways
     let c0 = Vec3::new(c0.r as FP, c0.g as FP, c0.b as FP);
     let c1 = Vec3::new(c1.r as FP, c1.g as FP, c1.b as FP);
@@ -147,15 +168,15 @@ pub fn draw_multishade_triangle(canvas: &mut WindowCanvas, p0: Point, p1: Point,
 
     let (p0, c0, p1, c1) = match p1.y < p0.y {
         true => (p1, c1, p0, c0),
-        false => (p0, c0, p1, c1)
+        false => (p0, c0, p1, c1),
     };
     let (p0, c0, p2, c2) = match p2.y < p0.y {
         true => (p2, c2, p0, c0),
-        false => (p0, c0, p2, c2)
+        false => (p0, c0, p2, c2),
     };
     let (p1, c1, p2, c2) = match p2.y < p1.y {
         true => (p2, c2, p1, c1),
-        false => (p1, c1, p2, c2)
+        false => (p1, c1, p2, c2),
     };
 
     let mut x01_12 = lerp(p0.y, p0.x as FP, p1.y, p1.x as FP);
@@ -164,15 +185,23 @@ pub fn draw_multishade_triangle(canvas: &mut WindowCanvas, p0: Point, p1: Point,
     let x02 = lerp(p0.y, p0.x as FP, p2.y, p2.x as FP);
     let x01_12 = x01_12;
 
-    let mut c01_12 = (0..p1.y-p0.y).map(|x| c0.lerp(c1, x as FP / (p1.y-p0.y) as FP)).collect::<Vec<Vec3>>();
-    c01_12.append(&mut (0..=(p2.y-p1.y)).map(|x| c1.lerp(c2, x as FP/ (p2.y-p1.y) as FP)).collect::<Vec<Vec3>>());
-    let c02 = (0..=(p2.y-p0.y)).map(|x| c0.lerp(c2, x as FP/ (p2.y-p0.y) as FP)).collect::<Vec<Vec3>>();
+    let mut c01_12 = (0..p1.y - p0.y)
+        .map(|x| c0.lerp(c1, x as FP / (p1.y - p0.y) as FP))
+        .collect::<Vec<Vec3>>();
+    c01_12.append(
+        &mut (0..=(p2.y - p1.y))
+            .map(|x| c1.lerp(c2, x as FP / (p2.y - p1.y) as FP))
+            .collect::<Vec<Vec3>>(),
+    );
+    let c02 = (0..=(p2.y - p0.y))
+        .map(|x| c0.lerp(c2, x as FP / (p2.y - p0.y) as FP))
+        .collect::<Vec<Vec3>>();
     let c01_12 = c01_12;
 
     let m = x02.len() / 2;
     let (x_left, c_left, x_right, c_right) = match x02[m] < x01_12[m] {
         true => (x02, c02, x01_12, c01_12),
-        false => (x01_12, c01_12, x02, c02)
+        false => (x01_12, c01_12, x02, c02),
     };
 
     for y in p0.y..p2.y {
@@ -182,10 +211,9 @@ pub fn draw_multishade_triangle(canvas: &mut WindowCanvas, p0: Point, p1: Point,
         let x_r = x_right[idx] as i32;
         let c_r = c_right[idx];
         for x in x_l..x_r {
-            let c_vec = c_l.lerp(c_r, (x - x_l) as FP/(x_r - x_l) as FP);
+            let c_vec = c_l.lerp(c_r, (x - x_l) as FP / (x_r - x_l) as FP);
             let color = Color::from((c_vec.x as u8, c_vec.y as u8, c_vec.z as u8));
             put_color(canvas, Point::new(x, y), color);
         }
     }
-
 }

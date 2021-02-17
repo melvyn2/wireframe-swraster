@@ -1,9 +1,9 @@
-use std::ops;
-use std::mem::transmute;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
+use std::mem::transmute;
+use std::ops;
 
-use glam::{DVec2, DVec3, DVec4, DQuat};
+use glam::{DQuat, DVec2, DVec3, DVec4};
 pub use glam::{IVec2, IVec3};
 pub use glam::{Vec3Swizzles, Vec4Swizzles};
 
@@ -20,12 +20,12 @@ pub type Quat = DQuat;
 pub struct XYH {
     pub x: i32,
     pub y: i32,
-    pub h: FP
+    pub h: FP,
 }
 
 impl XYH {
     pub fn new(x: i32, y: i32, h: FP) -> XYH {
-        XYH{x, y, h}
+        XYH { x, y, h }
     }
 }
 
@@ -48,13 +48,15 @@ pub fn lerp(x1: i32, y1: FP, x2: i32, y2: FP) -> Vec<FP> {
     let b = y1 - (m * fx1);
     assert_eq_fp!(y1, (m * fx1) + b, 0.001);
     assert_eq_fp!(y2, (m * fx2) + b, 0.001);
-    ops::RangeInclusive::new(x1, x2).map(|x| (x as FP * m) + b).collect()
+    ops::RangeInclusive::new(x1, x2)
+        .map(|x| (x as FP * m) + b)
+        .collect()
 }
 
 pub fn vec3_hash(v: &Vec3) -> u64 {
-let mut h = DefaultHasher::new();
-    unsafe {transmute::<f64, i64>(v.x)}.hash(&mut h);
-    unsafe {transmute::<f64, i64>(v.y)}.hash(&mut h);
-    unsafe {transmute::<f64, i64>(v.z)}.hash(&mut h);
+    let mut h = DefaultHasher::new();
+    unsafe { transmute::<f64, i64>(v.x) }.hash(&mut h);
+    unsafe { transmute::<f64, i64>(v.y) }.hash(&mut h);
+    unsafe { transmute::<f64, i64>(v.z) }.hash(&mut h);
     h.finish()
 }
