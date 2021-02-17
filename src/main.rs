@@ -32,12 +32,11 @@ struct Mesh {
 struct Object {
     pos: Vec3,
     rot: Quat,
-    mesh: Rc<Mesh>,
+    scale: FP,
+    mesh: Rc<Vec<Vec3>>,
 }
 
-fn cube(scale: i32) -> Object {
-    let pos = Vec3::zero();
-    let rot = Quat::from_rotation_y(0.2);
+fn cube(scale: i32) -> Vec<Vec3> {
     let scale = scale as FP;
     let verts: Vec<Vec3> = vec![
         Vec3::new(-scale, -scale, -scale),
@@ -49,18 +48,12 @@ fn cube(scale: i32) -> Object {
         Vec3::new(scale, scale, scale),
         Vec3::new(-scale, scale, scale),
     ];
-    let tris = vec![
+    vec![
         verts[0], verts[1], verts[2], verts[0], verts[2], verts[3], verts[4], verts[0], verts[3],
         verts[4], verts[3], verts[7], verts[5], verts[4], verts[7], verts[5], verts[7], verts[6],
         verts[1], verts[5], verts[6], verts[1], verts[6], verts[2], verts[4], verts[5], verts[1],
         verts[4], verts[1], verts[0], verts[2], verts[6], verts[7], verts[2], verts[7], verts[3],
-    ];
-    let mesh = Mesh { tris };
-    Object {
-        pos,
-        rot,
-        mesh: Rc::new(mesh),
-    }
+    ]
 }
 
 struct Scene {
@@ -75,7 +68,6 @@ fn rand_percent(rng: &mut WyRand) -> FP {
 fn project_vertex(camera: &Camera, point: &Vec3) -> Point {
     // Switch to camera space
     let point_local = camera.rot * (*point - camera.pos);
-    // TODO apply camera rotation
 
     if point_local.z <= camera.viewport.z {
         return Point::new(0, 0);
@@ -88,13 +80,19 @@ fn project_vertex(camera: &Camera, point: &Vec3) -> Point {
 }
 
 fn render_object(canvas: &mut WindowCanvas, camera: &Camera, obj: &Object) {
-    assert_eq!(obj.mesh.tris.len() % 3, 0);
-    for idx in (0..obj.mesh.tris.len()).step_by(3) {
+    assert_eq!(obj.mesh.len() % 3, 0);
+    for idx in (0..obj.mesh.len()).step_by(3) {
         draw_triangle(
             canvas,
-            project_vertex(camera, &obj.mesh.tris[idx]),
-            project_vertex(camera, &obj.mesh.tris[idx + 1]),
-            project_vertex(camera, &obj.mesh.tris[idx + 2]),
+            project_vertex(camera, &((obj.rot * obj.mesh[idx] * obj.scale) + obj.pos)),
+            project_vertex(
+                camera,
+                &((obj.rot * obj.mesh[idx + 1] * obj.scale) + obj.pos),
+            ),
+            project_vertex(
+                camera,
+                &((obj.rot * obj.mesh[idx + 2] * obj.scale) + obj.pos),
+            ),
             Color::BLACK,
         );
     }
@@ -198,7 +196,7 @@ pub fn main() {
         .resizable()
         .build()
         .unwrap();
-
+    // sdl_context.mouse().set_relative_mouse_mode(true);
     let mut canvas = window.into_canvas().build().unwrap();
     canvas.set_draw_color(Color::WHITE);
     canvas.clear();
@@ -211,7 +209,12 @@ pub fn main() {
         Some(90u8),
         (800, 600),
     );
-    let obj = cube(2);
+    let obj = Object {
+        pos: Vec3::zero(),
+        rot: Quat::default(),
+        scale: 4.0,
+        mesh: Rc::new(cube(1)),
+    };
     render_object(&mut canvas, &camera, &obj);
     'running: loop {
         // put_color(&mut canvas, Point::new(rng.generate_range::<u32>(1, 800) as i32, rng.generate_range::<u32>(1, 600) as i32), Color::BLACK);
@@ -300,9 +303,14 @@ pub fn main() {
                 } => {
                     camera.change_res((x as u32, y as u32));
                 }
+                // Event::MouseMotion { xrel, yrel, .. } => camera.look(
+                //     Quat::from_rotation_x(xrel as FP / 10.0)
+                //         * Quat::from_rotation_y(yrel as FP / 10.0),
+                // ),
                 _ => {}
             }
         }
+        // camera.rot.normalize();
         canvas.set_draw_color(Color::WHITE);
         canvas.clear();
         render_object(&mut canvas, &camera, &obj);
