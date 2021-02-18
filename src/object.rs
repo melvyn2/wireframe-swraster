@@ -19,20 +19,26 @@ impl Object {
     pub fn render(&self, canvas: &mut WindowCanvas, camera: &Camera) {
         assert_eq!(self.mesh.len() % 3, 0);
         for idx in (0..self.mesh.len()).step_by(3) {
+            let v_a = project_vertex(
+                camera,
+                &((self.rot * self.mesh[idx] * self.scale) + self.pos),
+            );
+            let v_b = project_vertex(
+                camera,
+                &((self.rot * self.mesh[idx + 1] * self.scale) + self.pos),
+            );
+            let v_c = project_vertex(
+                camera,
+                &((self.rot * self.mesh[idx + 2] * self.scale) + self.pos),
+            );
+            if v_a.is_none() || v_b.is_none() || v_c.is_none() {
+                continue;
+            }
             draw_triangle(
                 canvas,
-                project_vertex(
-                    camera,
-                    &((self.rot * self.mesh[idx] * self.scale) + self.pos),
-                ),
-                project_vertex(
-                    camera,
-                    &((self.rot * self.mesh[idx + 1] * self.scale) + self.pos),
-                ),
-                project_vertex(
-                    camera,
-                    &((self.rot * self.mesh[idx + 2] * self.scale) + self.pos),
-                ),
+                v_a.unwrap(),
+                v_b.unwrap(),
+                v_c.unwrap(),
                 Color::BLACK,
             );
         }
@@ -53,76 +59,76 @@ pub fn draw_cube(canvas: &mut WindowCanvas, scale: i32, camera: &Camera) {
 
     draw_line(
         canvas,
-        project_vertex(camera, &fv_a),
-        project_vertex(camera, &fv_b),
+        project_vertex(camera, &fv_a).unwrap(),
+        project_vertex(camera, &fv_b).unwrap(),
         Color::BLACK,
     );
     draw_line(
         canvas,
-        project_vertex(camera, &fv_b),
-        project_vertex(camera, &fv_c),
+        project_vertex(camera, &fv_b).unwrap(),
+        project_vertex(camera, &fv_c).unwrap(),
         Color::BLACK,
     );
     draw_line(
         canvas,
-        project_vertex(camera, &fv_c),
-        project_vertex(camera, &fv_d),
+        project_vertex(camera, &fv_c).unwrap(),
+        project_vertex(camera, &fv_d).unwrap(),
         Color::BLACK,
     );
     draw_line(
         canvas,
-        project_vertex(camera, &fv_d),
-        project_vertex(camera, &fv_a),
-        Color::BLACK,
-    );
-
-    draw_line(
-        canvas,
-        project_vertex(camera, &bv_a),
-        project_vertex(camera, &bc_b),
-        Color::BLACK,
-    );
-    draw_line(
-        canvas,
-        project_vertex(camera, &bc_b),
-        project_vertex(camera, &bv_d),
-        Color::BLACK,
-    );
-    draw_line(
-        canvas,
-        project_vertex(camera, &bv_d),
-        project_vertex(camera, &bv_e),
-        Color::BLACK,
-    );
-    draw_line(
-        canvas,
-        project_vertex(camera, &bv_e),
-        project_vertex(camera, &bv_a),
+        project_vertex(camera, &fv_d).unwrap(),
+        project_vertex(camera, &fv_a).unwrap(),
         Color::BLACK,
     );
 
     draw_line(
         canvas,
-        project_vertex(camera, &fv_a),
-        project_vertex(camera, &bv_a),
+        project_vertex(camera, &bv_a).unwrap(),
+        project_vertex(camera, &bc_b).unwrap(),
         Color::BLACK,
     );
     draw_line(
         canvas,
-        project_vertex(camera, &fv_b),
-        project_vertex(camera, &bc_b),
+        project_vertex(camera, &bc_b).unwrap(),
+        project_vertex(camera, &bv_d).unwrap(),
         Color::BLACK,
     );
     draw_line(
         canvas,
-        project_vertex(camera, &fv_c),
-        project_vertex(camera, &bv_d),
+        project_vertex(camera, &bv_d).unwrap(),
+        project_vertex(camera, &bv_e).unwrap(),
         Color::BLACK,
     );
     draw_line(
         canvas,
-        project_vertex(camera, &fv_d),
-        project_vertex(camera, &bv_e),
+        project_vertex(camera, &bv_e).unwrap(),
+        project_vertex(camera, &bv_a).unwrap(),
+        Color::BLACK,
+    );
+
+    draw_line(
+        canvas,
+        project_vertex(camera, &fv_a).unwrap(),
+        project_vertex(camera, &bv_a).unwrap(),
+        Color::BLACK,
+    );
+    draw_line(
+        canvas,
+        project_vertex(camera, &fv_b).unwrap(),
+        project_vertex(camera, &bc_b).unwrap(),
+        Color::BLACK,
+    );
+    draw_line(
+        canvas,
+        project_vertex(camera, &fv_c).unwrap(),
+        project_vertex(camera, &bv_d).unwrap(),
+        Color::BLACK,
+    );
+    draw_line(
+        canvas,
+        project_vertex(camera, &fv_d).unwrap(),
+        project_vertex(camera, &bv_e).unwrap(),
         Color::BLACK,
     );
 }

@@ -36,18 +36,18 @@ fn rand_percent(rng: &mut WyRand) -> FP {
     rng.generate_range::<u16>(0, 10000) as FP / 10000.0
 }
 
-fn project_vertex(camera: &Camera, point: &Vec3) -> Point {
+fn project_vertex(camera: &Camera, point: &Vec3) -> Option<Point> {
     // Switch to camera space
     let point_local = camera.rot * (*point - camera.pos);
 
     if point_local.z <= camera.viewport.z {
-        return Point::new(0, 0);
+        return None;
     }
     // camera.viewport.z / point_local.z  projects to viewport
     let vp_res = point_local.xy() * camera.viewport.z / point_local.z;
     // camera.viewport.w scales to canvas
     let res = (vp_res + (camera.viewport.xy() / 2.0)) * camera.viewport.w;
-    Point::new(res.x as i32, res.y as i32)
+    Some(Point::new(res.x as i32, res.y as i32))
 }
 
 pub fn main() {
