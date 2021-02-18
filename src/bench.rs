@@ -127,3 +127,16 @@ fn cube(b: &mut Bencher) {
     };
     b.iter(|| cube.render(&mut canvas, &camera));
 }
+
+#[bench]
+fn teapot(b: &mut Bencher) {
+    let mut canvas = get_test_canvas();
+    let camera = Camera::new(None, None, None, (800, 600));
+    let teapot = Object {
+        pos: Vec3::zero(),
+        rot: Quat::default(),
+        scale: 4.0,
+        mesh: Rc::new(crate::meshes::teapot()),
+    };
+    b.iter(|| teapot.render(&mut canvas, &camera));
+}

@@ -31,7 +31,7 @@ impl Camera {
         self.rot *= offset;
     }
     pub fn change_fov(&mut self, fov: u8) {
-        if fov <= 0 || fov >= 180 {
+        if fov == 0 || fov >= 180 {
             return;
         }
         self.viewport = viewport(fov, self.res, Some(self.viewport.z));
@@ -54,24 +54,24 @@ fn viewport(fov: u8, res: (u32, u32), d: Option<FP>) -> Vec4 {
 
     // Resize shorter size to fit ratio
     let ratio = res.0 as FP / res.1 as FP;
-    match ratio.partial_cmp(&(1 as FP)).unwrap() {
+    match ratio.partial_cmp(&(1.0)).unwrap() {
         Ordering::Equal => Vec4::new(
-            side_ab * 2 as FP,
-            side_ab * 2 as FP,
+            side_ab * 2.0,
+            side_ab * 2.0,
             side_bc,
-            res.0 as FP / (side_ab * 2 as FP),
+            res.0 as FP / (side_ab * 2.0),
         ),
         Ordering::Less => Vec4::new(
-            side_ab * 2 as FP * ratio,
-            side_ab * 2 as FP,
+            side_ab * 2.0 * ratio,
+            side_ab * 2.0,
             side_bc,
-            res.1 as FP / (side_ab * 2 as FP),
+            res.1 as FP / (side_ab * 2.0),
         ),
         Ordering::Greater => Vec4::new(
-            side_ab * 2 as FP,
-            side_ab * 2 as FP * (1 as FP / ratio),
+            side_ab * 2.0,
+            side_ab * 2.0 * ratio.recip(),
             side_bc,
-            res.0 as FP / (side_ab * 2 as FP),
+            res.0 as FP / (side_ab * 2.0),
         ),
     }
 }

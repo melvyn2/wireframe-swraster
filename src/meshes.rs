@@ -1,6 +1,11 @@
-// Adapted from https://github.com/kretash/UtahTeapot/blob/master/teapot.h
+use std::path::Path;
+
+use gltf::json::mesh::Mode;
+use gltf::Primitive;
+
 use crate::math::Vec3;
 
+// Adapted from https://github.com/kretash/UtahTeapot/blob/master/teapot.h
 pub fn teapot() -> Vec<Vec3> {
     vec![
         Vec3::new(0.700000, -1.200000, 0.000000),
@@ -1752,4 +1757,16 @@ pub fn cube() -> Vec<Vec3> {
         verts[1], verts[5], verts[6], verts[1], verts[6], verts[2], verts[4], verts[5], verts[1],
         verts[4], verts[1], verts[0], verts[2], verts[6], verts[7], verts[2], verts[7], verts[3],
     ]
+}
+
+pub fn import_mesh(path: &Path) -> Vec<Vec3> {
+    let (loaded, buffers, _) = gltf::import(path).unwrap();
+    let gl_primitive: Primitive = loaded.meshes().next().unwrap().primitives().next().unwrap();
+    assert_eq!(gl_primitive.mode(), Mode::Triangles);
+    let pos = gl_primitive
+        .reader(|buf| Some(&buffers[buf.index()]))
+        .read_positions()
+        .unwrap();
+    pos.map(|v| glam::f32::Vec3::from_slice_unaligned(&v).as_f64())
+        .collect()
 }

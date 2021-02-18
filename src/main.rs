@@ -67,6 +67,8 @@ pub fn main() {
     canvas.present();
     let mut event_pump = sdl_context.event_pump().unwrap();
     // let mut rng = WyRand::new();
+    // let mut imp_mesh = import_mesh(Path::new("src/teapot.glb"));
+    // imp_mesh.truncate(imp_mesh.len() - (imp_mesh.len() % 3));
     let mut camera = Camera::new(
         Some(Vec3::new(0.0, 0.0, -10.0)),
         None,
