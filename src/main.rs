@@ -4,7 +4,7 @@
 #![allow(dead_code)]
 
 use std::rc::Rc;
-use std::time::Duration;
+use std::time;
 
 use nanorand::{WyRand, RNG};
 
@@ -83,6 +83,7 @@ pub fn main() {
     };
     obj.render(&mut canvas, &camera);
     'running: loop {
+        let fr_start = time::Instant::now();
         // put_color(&mut canvas, Point::new(rng.generate_range::<u32>(1, 800) as i32, rng.generate_range::<u32>(1, 600) as i32), Color::BLACK);
         // draw_line(&mut canvas, Point::new(400, 300), Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32), Color::BLACK);
         // draw_triangle(&mut canvas,
@@ -181,6 +182,12 @@ pub fn main() {
         canvas.clear();
         obj.render(&mut canvas, &camera);
         canvas.present();
-        std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 75));
+        // Comment out for UNLIMITED FPS!!
+        std::thread::sleep(
+            time::Duration::from_millis(1000 / 75)
+                .checked_sub(fr_start.elapsed())
+                .unwrap_or_default(),
+        );
+        // print!("\r {} FPS", (1.0 / fr_start.elapsed().as_secs_f32()) as u32);
     }
 }

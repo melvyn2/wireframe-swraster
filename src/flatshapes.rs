@@ -122,11 +122,11 @@ pub fn draw_shaded_triangle(
     let x02 = lerp(p0.y, p0.x as FP, p2.y, p2.x as FP);
 
     // Do the same for H
-    let mut h01_12 = lerp(p0.y, p0.h, p1.y, p1.h as FP);
+    let mut h01_12 = lerp(p0.y, p0.h, p1.y, p1.h);
     h01_12.pop();
-    h01_12.append(&mut lerp(p1.y, p1.h as FP, p2.y, p2.h as FP));
+    h01_12.append(&mut lerp(p1.y, p1.h, p2.y, p2.h));
     let h01_12 = h01_12;
-    let h02 = lerp(p0.y, p0.h as FP, p2.y, p2.h as FP);
+    let h02 = lerp(p0.y, p0.h, p2.y, p2.h as FP);
 
     // Find which side is left/right
     let m = x02.len() / 2;
