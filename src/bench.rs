@@ -1,6 +1,9 @@
 extern crate test;
 use test::Bencher;
 
+use sdl2::render::WindowCanvas;
+
+use crate::flatshapes::*;
 use crate::*;
 
 fn get_test_canvas() -> WindowCanvas {
@@ -122,5 +125,5 @@ fn cube(b: &mut Bencher) {
         scale: 4.0,
         mesh: Rc::new(crate::meshes::cube()),
     };
-    b.iter(|| render_object(&mut canvas, &camera, &cube));
+    b.iter(|| cube.render(&mut canvas, &camera));
 }
