@@ -1,0 +1,1 @@
+![Wireframe Teapot](example.png)
