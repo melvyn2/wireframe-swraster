@@ -4,7 +4,7 @@
 use std::rc::Rc;
 use std::time;
 
-use nanorand::{WyRand, Rng};
+use nanorand::{Rng, WyRand};
 
 use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::Keycode;
