@@ -1767,6 +1767,6 @@ pub fn import_mesh(path: &Path) -> Vec<Vec3> {
         .reader(|buf| Some(&buffers[buf.index()]))
         .read_positions()
         .unwrap();
-    pos.map(|v| glam::f32::Vec3::from_slice_unaligned(&v).as_f64())
+    pos.map(|v| glam::f32::Vec3::from_slice(&v).as_dvec3())
         .collect()
 }
