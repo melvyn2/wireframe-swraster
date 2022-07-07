@@ -120,7 +120,7 @@ fn cube(b: &mut Bencher) {
     let mut canvas = get_test_canvas();
     let camera = Camera::new(None, None, None, (800, 600));
     let cube = Object {
-        pos: Vec3::zero(),
+        pos: Vec3::ZERO,
         rot: Quat::default(),
         scale: 4.0,
         mesh: Rc::new(crate::meshes::cube()),
@@ -133,7 +133,7 @@ fn teapot(b: &mut Bencher) {
     let mut canvas = get_test_canvas();
     let camera = Camera::new(None, None, None, (800, 600));
     let teapot = Object {
-        pos: Vec3::zero(),
+        pos: Vec3::ZERO,
         rot: Quat::default(),
         scale: 4.0,
         mesh: Rc::new(crate::meshes::teapot()),
