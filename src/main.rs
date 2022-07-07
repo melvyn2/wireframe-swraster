@@ -1,5 +1,3 @@
-#![feature(destructuring_assignment)]
-#![feature(option_expect_none)]
 #![feature(test)]
 #![allow(dead_code)]
 
