@@ -182,7 +182,7 @@ pub fn main() {
         canvas.present();
         // Comment out for UNLIMITED FPS!!
         std::thread::sleep(
-            time::Duration::from_millis(1000 / 75)
+            time::Duration::from_millis(1000 / 60)
                 .checked_sub(fr_start.elapsed())
                 .unwrap_or_default(),
         );
