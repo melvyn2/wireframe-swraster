@@ -4,7 +4,7 @@
 use std::rc::Rc;
 use std::time;
 
-use nanorand::{WyRand, RNG};
+use nanorand::{WyRand, Rng};
 
 use sdl2::event::{Event, WindowEvent};
 use sdl2::keyboard::Keycode;
@@ -31,7 +31,7 @@ struct Scene {
 }
 
 fn rand_percent(rng: &mut WyRand) -> FP {
-    rng.generate_range::<u16>(0, 10000) as FP / 10000.0
+    rng.generate_range(0_u16..=10000) as FP / 10000.0
 }
 
 fn project_vertex(camera: &Camera, point: &Vec3) -> Option<Point> {
