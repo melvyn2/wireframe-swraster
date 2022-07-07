@@ -1,0 +1,12 @@
+# The cargo benchmarks also double as tests and so cause the `cargo test` command to fail,
+# as they were not meant to be run in the test harness:
+# the benchmark harness runs each test in sequence as to avoid resource contention,
+# but normal tests are run in parallel by default.
+#
+# Multiple SDL contexts can't coexist, so while sequential tests drop the context in time for the next test,
+# parallel tests conflict with eachother for the global context slot and panic/fail.
+#
+# This is not the best fix but is held up on https://github.com/rust-lang/cargo/issues/8430
+
+[env]
+RUST_TEST_THREADS = "1"
