@@ -1,5 +1,9 @@
 use std::cmp::Ordering;
 
+use sdl2::event::{Event, WindowEvent};
+use sdl2::keyboard::Keycode;
+use sdl2::EventPump;
+
 use crate::math::*;
 
 pub struct Camera {
@@ -29,6 +33,7 @@ impl Camera {
     }
     pub fn look(&mut self, offset: Quat) {
         self.rot *= offset;
+        self.rot.normalize();
     }
     pub fn change_fov(&mut self, fov: u8) {
         if fov == 0 || fov >= 180 {
@@ -40,6 +45,82 @@ impl Camera {
     pub fn change_res(&mut self, res: (u32, u32)) {
         self.viewport = viewport(self.fov, res, Some(self.viewport.z));
         self.res = res;
+    }
+    pub fn process_inputs(&mut self, event_pump: &mut EventPump) {
+        for event in event_pump.poll_iter() {
+            match event {
+                Event::Quit { .. }
+                | Event::KeyDown {
+                    keycode: Some(Keycode::Escape),
+                    ..
+                } => {
+                    std::process::exit(0); // Would be better to handle in main()
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::W),
+                    ..
+                } => {
+                    self.local_move(Vec3::new(0.0, 0.0, 0.1));
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::A),
+                    ..
+                } => {
+                    self.local_move(Vec3::new(-0.1, 0.0, 0.0));
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::S),
+                    ..
+                } => {
+                    self.local_move(Vec3::new(0.0, 0.0, -0.1));
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::D),
+                    ..
+                } => {
+                    self.local_move(Vec3::new(0.1, 0.0, 0.0));
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::Up),
+                    ..
+                } => {
+                    self.look(Quat::from_rotation_x(-0.01));
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::Down),
+                    ..
+                } => {
+                    self.look(Quat::from_rotation_x(0.01));
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::Left),
+                    ..
+                } => {
+                    self.look(Quat::from_rotation_y(0.01));
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::Right),
+                    ..
+                } => {
+                    self.look(Quat::from_rotation_y(-0.01));
+                }
+                Event::MouseWheel { y, .. } => {
+                    self.change_fov((self.fov as i32 + y) as u8);
+                }
+                Event::Window {
+                    win_event: WindowEvent::SizeChanged(x, y),
+                    ..
+                } => {
+                    self.change_res((x as u32, y as u32));
+                }
+                // Mouse movement disabled because an mouse unlock is needed and the camera rolls
+                // Event::MouseMotion { xrel, yrel, .. } => self.look(
+                //     Quat::from_rotation_y(xrel as FP / 100.0)
+                //         * Quat::from_rotation_x(yrel as FP / 100.0),
+                // ),
+                _ => {}
+            }
+        }
     }
 }
 
