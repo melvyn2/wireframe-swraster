@@ -6,8 +6,6 @@ use std::time;
 
 use nanorand::{WyRand, RNG};
 
-use sdl2::event::{Event, WindowEvent};
-use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::rect::Point;
 
@@ -18,6 +16,7 @@ mod meshes;
 mod object;
 
 use camera::*;
+use flatshapes::*;
 use math::*;
 use meshes::*;
 use object::*;
@@ -28,6 +27,16 @@ mod bench;
 struct Scene {
     camera: Camera,
     objects: Vec<Object>,
+}
+
+enum RenderMode {
+    Point,
+    Line,
+    Triangle,
+    FilledTriangle,
+    ShadedTriangle,
+    MultishadedTriangle,
+    Mesh,
 }
 
 fn rand_percent(rng: &mut WyRand) -> FP {
@@ -49,6 +58,8 @@ fn project_vertex(camera: &Camera, point: &Vec3) -> Option<Point> {
 }
 
 pub fn main() {
+    let render_mode = RenderMode::Mesh; // TODO make this runtime changable
+
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
 
@@ -59,126 +70,140 @@ pub fn main() {
         .build()
         .unwrap();
     // sdl_context.mouse().set_relative_mouse_mode(true);
+    let mut event_pump = sdl_context.event_pump().unwrap();
     let mut canvas = window.into_canvas().build().unwrap();
     canvas.set_draw_color(Color::WHITE);
     canvas.clear();
-    canvas.present();
-    let mut event_pump = sdl_context.event_pump().unwrap();
-    // let mut rng = WyRand::new();
-    // let mut imp_mesh = import_mesh(Path::new("src/teapot.glb"));
-    // imp_mesh.truncate(imp_mesh.len() - (imp_mesh.len() % 3));
+    canvas.present(); // Leave white canvas while the rest of the program inits
+
+    let mut rng = WyRand::new();
     let mut camera = Camera::new(
         Some(Vec3::new(0.0, 0.0, -10.0)),
         None,
         Some(90u8),
         (800, 600),
     );
+    // let mut imp_mesh = import_mesh(Path::new("src/teapot.glb"));
+    // imp_mesh.truncate(imp_mesh.len() - (imp_mesh.len() % 3));
     let obj = Object {
         pos: Vec3::new(0.0, 3.0, 0.0),
         rot: Quat::default(),
         scale: 4.0,
         mesh: Rc::new(teapot()),
     };
-    obj.render(&mut canvas, &camera);
-    'running: loop {
+
+    loop {
         let fr_start = time::Instant::now();
-        // put_color(&mut canvas, Point::new(rng.generate_range::<u32>(1, 800) as i32, rng.generate_range::<u32>(1, 600) as i32), Color::BLACK);
-        // draw_line(&mut canvas, Point::new(400, 300), Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32), Color::BLACK);
-        // draw_triangle(&mut canvas,
-        //               Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
-        //               Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
-        //               Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
-        //               Color::BLACK);
-        // draw_filled_triangle(&mut canvas,
-        //               Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
-        //               Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
-        //               Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
-        //               Color::BLACK, Color::GREEN);
-        // draw_shaded_triangle(&mut canvas,
-        //                      XYH::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32, rand_percent(&mut rng)),
-        //                      XYH::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32, rand_percent(&mut rng)),
-        //                      XYH::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32, rand_percent(&mut rng)),
-        //                 Color::from((rng.generate_range::<u8>(0, 255), rng.generate_range::<u8>(0, 255), rng.generate_range::<u8>(0, 255))));
-        // draw_multishade_triangle(&mut canvas, Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
-        //                                        Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32),
-        //                                        Point::new(rng.generate_range::<u32>(100, 700) as i32, rng.generate_range::<u32>(100, 500) as i32), Color::RED, Color::GREEN, Color::BLUE);
-        for event in event_pump.poll_iter() {
-            match event {
-                Event::Quit { .. }
-                | Event::KeyDown {
-                    keycode: Some(Keycode::Escape),
-                    ..
-                } => {
-                    break 'running;
-                }
-                Event::KeyDown {
-                    keycode: Some(Keycode::W),
-                    ..
-                } => {
-                    camera.local_move(Vec3::new(0.0, 0.0, 0.1));
-                }
-                Event::KeyDown {
-                    keycode: Some(Keycode::A),
-                    ..
-                } => {
-                    camera.local_move(Vec3::new(-0.1, 0.0, 0.0));
-                }
-                Event::KeyDown {
-                    keycode: Some(Keycode::S),
-                    ..
-                } => {
-                    camera.local_move(Vec3::new(0.0, 0.0, -0.1));
-                }
-                Event::KeyDown {
-                    keycode: Some(Keycode::D),
-                    ..
-                } => {
-                    camera.local_move(Vec3::new(0.1, 0.0, 0.0));
-                }
-                Event::KeyDown {
-                    keycode: Some(Keycode::Up),
-                    ..
-                } => {
-                    camera.look(Quat::from_rotation_x(-0.01));
-                }
-                Event::KeyDown {
-                    keycode: Some(Keycode::Down),
-                    ..
-                } => {
-                    camera.look(Quat::from_rotation_x(0.01));
-                }
-                Event::KeyDown {
-                    keycode: Some(Keycode::Left),
-                    ..
-                } => {
-                    camera.look(Quat::from_rotation_y(0.01));
-                }
-                Event::KeyDown {
-                    keycode: Some(Keycode::Right),
-                    ..
-                } => {
-                    camera.look(Quat::from_rotation_y(-0.01));
-                }
-                Event::MouseWheel { y, .. } => {
-                    camera.change_fov((camera.fov as i32 + y) as u8);
-                }
-                Event::Window {
-                    win_event: WindowEvent::SizeChanged(x, y),
-                    ..
-                } => {
-                    camera.change_res((x as u32, y as u32));
-                }
-                // Event::MouseMotion { xrel, yrel, .. } => camera.look(
-                //     Quat::from_rotation_x(xrel as FP / 10.0)
-                //         * Quat::from_rotation_y(yrel as FP / 10.0),
-                // ),
-                _ => {}
+
+        camera.process_inputs(&mut event_pump);
+
+        match render_mode {
+            RenderMode::Point => put_color(
+                &mut canvas,
+                Point::new(
+                    rng.generate_range::<u32>(1, 800) as i32,
+                    rng.generate_range::<u32>(1, 600) as i32,
+                ),
+                Color::BLACK,
+            ),
+            RenderMode::Line => draw_line(
+                &mut canvas,
+                Point::new(400, 300),
+                Point::new(
+                    rng.generate_range::<u32>(100, 700) as i32,
+                    rng.generate_range::<u32>(100, 500) as i32,
+                ),
+                Color::BLACK,
+            ),
+            RenderMode::Triangle => {
+                draw_triangle(
+                    &mut canvas,
+                    Point::new(
+                        rng.generate_range::<u32>(100, 700) as i32,
+                        rng.generate_range::<u32>(100, 500) as i32,
+                    ),
+                    Point::new(
+                        rng.generate_range::<u32>(100, 700) as i32,
+                        rng.generate_range::<u32>(100, 500) as i32,
+                    ),
+                    Point::new(
+                        rng.generate_range::<u32>(100, 700) as i32,
+                        rng.generate_range::<u32>(100, 500) as i32,
+                    ),
+                    Color::BLACK,
+                );
             }
-        }
-        // camera.rot.normalize();
-        canvas.set_draw_color(Color::WHITE);
-        canvas.clear();
-        obj.render(&mut canvas, &camera);
+            RenderMode::FilledTriangle => {
+                draw_filled_triangle(
+                    &mut canvas,
+                    Point::new(
+                        rng.generate_range::<u32>(100, 700) as i32,
+                        rng.generate_range::<u32>(100, 500) as i32,
+                    ),
+                    Point::new(
+                        rng.generate_range::<u32>(100, 700) as i32,
+                        rng.generate_range::<u32>(100, 500) as i32,
+                    ),
+                    Point::new(
+                        rng.generate_range::<u32>(100, 700) as i32,
+                        rng.generate_range::<u32>(100, 500) as i32,
+                    ),
+                    Color::BLACK,
+                    Color::GREEN,
+                );
+            }
+            RenderMode::ShadedTriangle => {
+                draw_shaded_triangle(
+                    &mut canvas,
+                    XYH::new(
+                        rng.generate_range::<u32>(100, 700) as i32,
+                        rng.generate_range::<u32>(100, 500) as i32,
+                        rand_percent(&mut rng),
+                    ),
+                    XYH::new(
+                        rng.generate_range::<u32>(100, 700) as i32,
+                        rng.generate_range::<u32>(100, 500) as i32,
+                        rand_percent(&mut rng),
+                    ),
+                    XYH::new(
+                        rng.generate_range::<u32>(100, 700) as i32,
+                        rng.generate_range::<u32>(100, 500) as i32,
+                        rand_percent(&mut rng),
+                    ),
+                    Color::from((
+                        rng.generate_range::<u8>(0, 255),
+                        rng.generate_range::<u8>(0, 255),
+                        rng.generate_range::<u8>(0, 255),
+                    )),
+                );
+            }
+            RenderMode::MultishadedTriangle => {
+                draw_multishade_triangle(
+                    &mut canvas,
+                    Point::new(
+                        rng.generate_range::<u32>(100, 700) as i32,
+                        rng.generate_range::<u32>(100, 500) as i32,
+                    ),
+                    Point::new(
+                        rng.generate_range::<u32>(100, 700) as i32,
+                        rng.generate_range::<u32>(100, 500) as i32,
+                    ),
+                    Point::new(
+                        rng.generate_range::<u32>(100, 700) as i32,
+                        rng.generate_range::<u32>(100, 500) as i32,
+                    ),
+                    Color::RED,
+                    Color::GREEN,
+                    Color::BLUE,
+                );
+            }
+            RenderMode::Mesh => {
+                // camera.rot.normalize();
+                canvas.set_draw_color(Color::WHITE);
+                canvas.clear();
+                obj.render(&mut canvas, &camera);
+            }
+        };
         canvas.present();
         // Comment out for UNLIMITED FPS!!
         std::thread::sleep(
