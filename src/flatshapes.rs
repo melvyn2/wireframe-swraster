@@ -91,9 +91,9 @@ pub fn draw_filled_triangle(
 
 pub fn draw_shaded_triangle(
     canvas: &mut WindowCanvas,
-    p0: XYH,
-    p1: XYH,
-    p2: XYH,
+    p0: Xyh,
+    p1: Xyh,
+    p2: Xyh,
     colorbase: Color,
 ) {
     let (p0, p1) = match p1.y < p0.y {

@@ -84,9 +84,9 @@ fn shaded_tri(b: &mut Bencher) {
     b.iter(|| {
         draw_shaded_triangle(
             &mut canvas,
-            XYH::new(100, 100, 1.0),
-            XYH::new(200, 120, 0.7),
-            XYH::new(120, 200, 0.0),
+            Xyh::new(100, 100, 1.0),
+            Xyh::new(200, 120, 0.7),
+            Xyh::new(120, 200, 0.0),
             Color::GREEN,
         )
     });
@@ -120,7 +120,7 @@ fn cube(b: &mut Bencher) {
     let mut canvas = get_test_canvas();
     let camera = Camera::new(None, None, None, (800, 600));
     let cube = Object {
-        pos: Vec3::zero(),
+        pos: Vec3::ZERO,
         rot: Quat::default(),
         scale: 4.0,
         mesh: Rc::new(crate::meshes::cube()),
@@ -133,7 +133,7 @@ fn teapot(b: &mut Bencher) {
     let mut canvas = get_test_canvas();
     let camera = Camera::new(None, None, None, (800, 600));
     let teapot = Object {
-        pos: Vec3::zero(),
+        pos: Vec3::ZERO,
         rot: Quat::default(),
         scale: 4.0,
         mesh: Rc::new(crate::meshes::teapot()),
