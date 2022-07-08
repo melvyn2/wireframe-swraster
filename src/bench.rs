@@ -84,9 +84,9 @@ fn shaded_tri(b: &mut Bencher) {
     b.iter(|| {
         draw_shaded_triangle(
             &mut canvas,
-            XYH::new(100, 100, 1.0),
-            XYH::new(200, 120, 0.7),
-            XYH::new(120, 200, 0.0),
+            Xyh::new(100, 100, 1.0),
+            Xyh::new(200, 120, 0.7),
+            Xyh::new(120, 200, 0.0),
             Color::GREEN,
         )
     });
