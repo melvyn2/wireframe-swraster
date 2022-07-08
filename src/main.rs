@@ -4,7 +4,7 @@
 use std::rc::Rc;
 use std::time;
 
-use nanorand::{WyRand, RNG};
+use nanorand::{Rng, WyRand};
 
 use sdl2::pixels::Color;
 use sdl2::rect::Point;
@@ -40,7 +40,7 @@ enum RenderMode {
 }
 
 fn rand_percent(rng: &mut WyRand) -> FP {
-    rng.generate_range::<u16>(0, 10000) as FP / 10000.0
+    rng.generate_range(0_u16..=10000) as FP / 10000.0
 }
 
 fn project_vertex(camera: &Camera, point: &Vec3) -> Option<Point> {
@@ -101,8 +101,8 @@ pub fn main() {
             RenderMode::Point => put_color(
                 &mut canvas,
                 Point::new(
-                    rng.generate_range::<u32>(1, 800) as i32,
-                    rng.generate_range::<u32>(1, 600) as i32,
+                    rng.generate_range(1_u32..=800) as i32,
+                    rng.generate_range(1_u32..=600) as i32,
                 ),
                 Color::BLACK,
             ),
@@ -110,8 +110,8 @@ pub fn main() {
                 &mut canvas,
                 Point::new(400, 300),
                 Point::new(
-                    rng.generate_range::<u32>(100, 700) as i32,
-                    rng.generate_range::<u32>(100, 500) as i32,
+                    rng.generate_range(100_u32..=700) as i32,
+                    rng.generate_range(100_u32..=500) as i32,
                 ),
                 Color::BLACK,
             ),
@@ -119,16 +119,16 @@ pub fn main() {
                 draw_triangle(
                     &mut canvas,
                     Point::new(
-                        rng.generate_range::<u32>(100, 700) as i32,
-                        rng.generate_range::<u32>(100, 500) as i32,
+                        rng.generate_range(100_u32..=700) as i32,
+                        rng.generate_range(100_u32..=500) as i32,
                     ),
                     Point::new(
-                        rng.generate_range::<u32>(100, 700) as i32,
-                        rng.generate_range::<u32>(100, 500) as i32,
+                        rng.generate_range(100_u32..=700) as i32,
+                        rng.generate_range(100_u32..=500) as i32,
                     ),
                     Point::new(
-                        rng.generate_range::<u32>(100, 700) as i32,
-                        rng.generate_range::<u32>(100, 500) as i32,
+                        rng.generate_range(100_u32..=700) as i32,
+                        rng.generate_range(100_u32..=500) as i32,
                     ),
                     Color::BLACK,
                 );
@@ -137,16 +137,16 @@ pub fn main() {
                 draw_filled_triangle(
                     &mut canvas,
                     Point::new(
-                        rng.generate_range::<u32>(100, 700) as i32,
-                        rng.generate_range::<u32>(100, 500) as i32,
+                        rng.generate_range(100_u32..=700) as i32,
+                        rng.generate_range(100_u32..=500) as i32,
                     ),
                     Point::new(
-                        rng.generate_range::<u32>(100, 700) as i32,
-                        rng.generate_range::<u32>(100, 500) as i32,
+                        rng.generate_range(100_u32..=700) as i32,
+                        rng.generate_range(100_u32..=500) as i32,
                     ),
                     Point::new(
-                        rng.generate_range::<u32>(100, 700) as i32,
-                        rng.generate_range::<u32>(100, 500) as i32,
+                        rng.generate_range(100_u32..=700) as i32,
+                        rng.generate_range(100_u32..=500) as i32,
                     ),
                     Color::BLACK,
                     Color::GREEN,
@@ -156,24 +156,24 @@ pub fn main() {
                 draw_shaded_triangle(
                     &mut canvas,
                     Xyh::new(
-                        rng.generate_range::<u32>(100, 700) as i32,
-                        rng.generate_range::<u32>(100, 500) as i32,
+                        rng.generate_range(100_u32..=700) as i32,
+                        rng.generate_range(100_u32..=500) as i32,
                         rand_percent(&mut rng),
                     ),
                     Xyh::new(
-                        rng.generate_range::<u32>(100, 700) as i32,
-                        rng.generate_range::<u32>(100, 500) as i32,
+                        rng.generate_range(100_u32..=700) as i32,
+                        rng.generate_range(100_u32..=500) as i32,
                         rand_percent(&mut rng),
                     ),
                     Xyh::new(
-                        rng.generate_range::<u32>(100, 700) as i32,
-                        rng.generate_range::<u32>(100, 500) as i32,
+                        rng.generate_range(100_u32..=700) as i32,
+                        rng.generate_range(100_u32..=500) as i32,
                         rand_percent(&mut rng),
                     ),
                     Color::from((
-                        rng.generate_range::<u8>(0, 255),
-                        rng.generate_range::<u8>(0, 255),
-                        rng.generate_range::<u8>(0, 255),
+                        rng.generate_range(0_u8..=255),
+                        rng.generate_range(0_u8..=255),
+                        rng.generate_range(0_u8..=255),
                     )),
                 );
             }
@@ -181,16 +181,16 @@ pub fn main() {
                 draw_multishade_triangle(
                     &mut canvas,
                     Point::new(
-                        rng.generate_range::<u32>(100, 700) as i32,
-                        rng.generate_range::<u32>(100, 500) as i32,
+                        rng.generate_range(100_u32..=700) as i32,
+                        rng.generate_range(100_u32..=500) as i32,
                     ),
                     Point::new(
-                        rng.generate_range::<u32>(100, 700) as i32,
-                        rng.generate_range::<u32>(100, 500) as i32,
+                        rng.generate_range(100_u32..=700) as i32,
+                        rng.generate_range(100_u32..=500) as i32,
                     ),
                     Point::new(
-                        rng.generate_range::<u32>(100, 700) as i32,
-                        rng.generate_range::<u32>(100, 500) as i32,
+                        rng.generate_range(100_u32..=700) as i32,
+                        rng.generate_range(100_u32..=500) as i32,
                     ),
                     Color::RED,
                     Color::GREEN,
