@@ -33,7 +33,7 @@ impl Camera {
     }
     pub fn look(&mut self, offset: Quat) {
         self.rot *= offset;
-        self.rot.normalize();
+        self.rot = self.rot.normalize();
     }
     pub fn change_fov(&mut self, fov: u8) {
         if fov == 0 || fov >= 180 {
