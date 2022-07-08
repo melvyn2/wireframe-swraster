@@ -1,6 +1,5 @@
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
-use std::mem::transmute;
 use std::ops;
 
 use glam::{DQuat, DVec2, DVec3, DVec4};
@@ -17,15 +16,15 @@ pub type Vec4 = DVec4;
 
 pub type Quat = DQuat;
 
-pub struct XYH {
+pub struct Xyh {
     pub x: i32,
     pub y: i32,
     pub h: FP,
 }
 
-impl XYH {
-    pub fn new(x: i32, y: i32, h: FP) -> XYH {
-        XYH { x, y, h }
+impl Xyh {
+    pub fn new(x: i32, y: i32, h: FP) -> Xyh {
+        Xyh { x, y, h }
     }
 }
 
@@ -55,8 +54,8 @@ pub fn lerp(x1: i32, y1: FP, x2: i32, y2: FP) -> Vec<FP> {
 
 pub fn vec3_hash(v: &Vec3) -> u64 {
     let mut h = DefaultHasher::new();
-    unsafe { transmute::<f64, i64>(v.x) }.hash(&mut h);
-    unsafe { transmute::<f64, i64>(v.y) }.hash(&mut h);
-    unsafe { transmute::<f64, i64>(v.z) }.hash(&mut h);
+    { v.x.to_bits() as i64 }.hash(&mut h);
+    { v.y.to_bits() as i64 }.hash(&mut h);
+    { v.z.to_bits() as i64 }.hash(&mut h);
     h.finish()
 }
