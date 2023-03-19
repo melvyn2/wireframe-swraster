@@ -9,8 +9,8 @@ edition = "2018"
 [dependencies]
 sdl2 = "0.35.2"
 nanorand = "0.7.0"
-glam = "0.21.2"
-gltf = "1.0.0"
+glam = "0.23.0"
+gltf = "1.1.0"
 
 [profile.release]
 lto = true
